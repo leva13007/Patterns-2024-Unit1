@@ -11,8 +11,9 @@
  */
 
 /**
- * @param {string} data
+ * @param {string} str
  * @param {boolean} removeHeaderLine
+ * @param {string} endOfRow
  * @param {string} divider
  * @returns {Array<Array<string>>}
  */
@@ -33,11 +34,8 @@ const parseDataToArray = (
  * @param {function} buildFn
  * @returns {Array<Array>}
  * */
-const filterAndBuildData = (arr, filterFn = (el) => el, buildFn) => {
-  const filteredData = arr.filter(filterFn);
-  if (buildFn) return filteredData.map(buildFn);
-  return filteredData;
-};
+const filterAndBuildData = (arr, filterFn = (el) => el, buildFn = (el) => el) =>
+  arr.filter(filterFn).map(buildFn);
 
 /**
  * @param {string} value
@@ -46,16 +44,16 @@ const filterAndBuildData = (arr, filterFn = (el) => el, buildFn) => {
 const convertToNumber = (value) => Number(value) || 0;
 
 /**
- * @param {Array<string>} match
+ * @param {Array<string>} row
  * @returns {City}
  * */
-const transformToObj = (match) => {
-  const city = match[0].trim();
-  const population = convertToNumber(match[1]);
-  const area = convertToNumber(match[2]);
-  const density = convertToNumber(match[3]);
-  const country = match[4].trim();
-  const responce = {
+const transformToCityObj = (row) => {
+  const city = row[0].trim();
+  const population = convertToNumber(row[1]);
+  const area = convertToNumber(row[2]);
+  const density = convertToNumber(row[3]);
+  const country = row[4].trim();
+  return {
     city,
     population,
     area,
@@ -63,7 +61,6 @@ const transformToObj = (match) => {
     country,
     normalizedDensity: 0,
   };
-  return responce;
 };
 
 /**
@@ -89,10 +86,10 @@ const getMaxDensity = (cities) =>
  * @returns {Array<City>}
  */
 const setDensityToEveryCity = (cities, maxDensity) =>
-  cities.map((city) => {
-    city.normalizedDensity = Math.round((city.density * 100) / maxDensity);
-    return city;
-  });
+  cities.map((city) => ({
+    ...city,
+    normalizedDensity: Math.round((city.density * 100) / maxDensity),
+  }));
 
 /**
  * @param {Array<City>} cities
@@ -128,7 +125,7 @@ const main = (data) => {
   const filteredData = filterAndBuildData(
     citiesArray,
     filterHandler,
-    transformToObj,
+    transformToCityObj,
   );
   const maxDensity = getMaxDensity(filteredData);
   const rowArray = setDensityToEveryCity(filteredData, maxDensity);
@@ -140,7 +137,7 @@ module.exports = {
   parseDataToArray,
   filterAndBuildData,
   convertToNumber,
-  transformToObj,
+  transformToCityObj,
   filterHandler,
   getMaxDensity,
   setDensityToEveryCity,
